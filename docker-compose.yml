@@ -1,0 +1,42 @@
+version: "3.9"
+services:
+  db:
+    container_name: db
+    image: mongo
+    volumes:
+      - ./data:/data/db
+    ports:
+      - "27017:27017"
+
+  books:
+    build: ./book-service
+    container_name: book-service
+    ports:
+      - "8080:3000"
+    volumes:
+      - /app/node_modules
+    depends_on:
+      - auth
+      - db
+
+  clients:
+    build: client-service
+    container_name: client-service
+    ports:
+      - "8081:3000"
+    volumes:
+      - /app/node_modules
+    depends_on:
+      - auth
+      - books
+      - db
+
+  auth:
+    build: ./auth-service
+    container_name: auth-service
+    ports:
+      - "8082:3000"
+    volumes:
+      - /app/node_modules
+    depends_on:
+      - db
