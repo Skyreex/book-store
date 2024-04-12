@@ -6,7 +6,7 @@ module.exports = requireAuth = (req, res, next) => {
 
   // check json web token exists & is verified
   if (token) {
-    jwt.verify(token, process.env.SECRET_KEY, (err, decodedToken) => {
+    jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
       if (err) {
         res.json({message: 'You must be logged in'})
       } else {

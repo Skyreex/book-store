@@ -5,35 +5,35 @@ const handleErrors = (err) => {
   console.log(err.message, err.code);
   let errors = {email: '', password: ''};
 
-  switch (err.message) {
-    case 'logged in':
-      errors.email = 'You are already logged in';
-      break;
-    case 'incorrect email':
-      errors.email = 'That email is not registered';
-      break;
-    case 'incorrect password':
-      errors.password = 'That password is incorrect';
-      break;
-    case 'duplicate email':
-      errors.email = 'That email is already registered';
-      break;
-    default:
-      errors.email = 'Something went wrong';
-      errors.password = 'Something went wrong';
+  if (err.message === 'logged in') errors.email = 'You are already logged in';
+
+  if (err.message === 'incorrect email') errors.email = 'That email is not registered';
+
+  if (err.message === 'incorrect password') errors.password = 'That password is incorrect';
+
+  if (err.code === 11000) {
+    errors.email = 'that email is already registered';
+    return errors;
   }
+
+  if (err.message.includes('user validation failed')) {
+    Object.values(err.errors).forEach(({properties}) => {
+      errors[properties.path] = properties.message;
+    });
+  }
+
   return errors;
 };
 
 const maxAge = 3 * 24 * 60 * 60; // 3 days
 const createToken = (id) => {
-  return jwt.sign({id}, process.env.SECRET_KEY, {
+  return jwt.sign({id}, process.env.JWT_SECRET, {
     expiresIn: maxAge,
   });
 };
 
 module.exports.signup_post = async (req, res) => {
-  if (req.cookies.jwt && jwt.verify(req.cookies.jwt, process.env.SECRET_KEY))
+  if (req.cookies.jwt && jwt.verify(req.cookies.jwt, process.env.JWT_SECRET))
     return res.status(400).json({errors: {email: 'You are already logged in'}});
 
   const {email, password} = req.body;
@@ -51,7 +51,7 @@ module.exports.signup_post = async (req, res) => {
 
 module.exports.login_post = async (req, res) => {
   const {email, password} = req.body;
-  if (req.cookies.jwt && jwt.verify(req.cookies.jwt, process.env.SECRET_KEY))
+  if (req.cookies.jwt && jwt.verify(req.cookies.jwt, process.env.JWT_SECRET))
     return res.status(400).json({errors: {email: 'You are already logged in'}});
 
   try {

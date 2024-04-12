@@ -6,18 +6,24 @@ const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 const app = express();
-
-// middleware
-app.use(express.static('public'));
 app.use(cookieParser());
 
+// const {
+//   DB_USER,
+//   DB_PASSWORD,
+//   DB_HOST,
+//   DB_PORT,
+//   DB_NAME
+// } = process.env;
+// const MONGO_URI = `mongodb://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}`
 
+const PORT = +process.env[__dirname.match(/\w+-service/)[0].replace('-', '_').toUpperCase() + "_PORT"];
+const MONGO_URI = `mongodb://localhost:27017/${process.env.MONOGDB_DATABASE}`;
 
-
-const DB_URI = `${process.env.DB_HOST}${process.env.DB_NAME}`;
-mongoose.connect(DB_URI)
-    .then((result) => app.listen(process.env.PORT || 3000))
+mongoose.connect(MONGO_URI)
+    .then((result) => app.listen(PORT, () => console.log('Book Server is running on port ' + PORT)))
     .catch((err) => console.log(err));
+
 
 app.get('/', (req, res) => res.json({message: 'Welcome to the books service'}));
 app.get("*", requireAuth)

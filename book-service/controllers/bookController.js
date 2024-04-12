@@ -2,7 +2,8 @@ const Book = require("../models/Book");
 
 module.exports.book_index = async (req, res) => {
   try {
-    const books = await Book.find();
+    const books = await Book.find({});
+    console.log(books)
     res.status(200).json(books);
   } catch (err) {
     res.status(400).json({message: err.message});
